@@ -1,6 +1,7 @@
-import type { Line, Location, Station, Stop } from "hafas-client";
+import type { Line } from "hafas-client";
 import type { NumericRange } from "@sveltejs/kit";
-import type { StationFull } from "db-hafas-stations";
+import type { ParsedLocation } from "$lib/models/ParsedLocation";
+import type { ParsedGeolocation } from "$lib/models/ParsedGeolocation";
 
 export type KeyedItem<T, K extends number | string> = {
 	value: T;
@@ -56,22 +57,22 @@ export type ParsedTime = {
 	} | null;
 };
 
-export type ParsedLocation =
-	| {
-			name: string;
-			requestParameter: string | Station | Stop | Location | StationFull;
-			readonly type: "station" | "address" | "poi";
-			position: { lat: number; lng: number };
-	  }
-	| ParsedGeolocation;
-
-export type ParsedGeolocation = {
-	name: string;
-	requestParameter: Location;
-	readonly type: "currentLocation";
-	asAt: Date;
-	position: { lat: number; lng: number };
-};
+//export type ParsedLocation =
+//	| {
+//			name: string;
+//			requestParameter: string | Station | Stop | Location | StationFull;
+//			readonly type: "station" | "address" | "poi";
+//			position: { lat: number; lng: number };
+//	  }
+//	| ParsedGeolocation;
+//
+//export type ParsedGeolocation = {
+//	name: string;
+//	requestParameter: Location;
+//	readonly type: "currentLocation";
+//	asAt: Date;
+//	position: { lat: number; lng: number };
+//};
 
 /**
  * This type is used whenever a journey comes in touch with a station.

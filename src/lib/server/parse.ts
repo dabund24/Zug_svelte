@@ -1,11 +1,9 @@
-import type { Leg, Station, Stop, Location, StopOver, Journey } from "hafas-client";
+import type { Leg, StopOver, Journey } from "hafas-client";
 import type {
 	JourneyBlock,
 	LegBlock,
 	LocationBlock,
 	OnwardJourneyBlock,
-	ParsedGeolocation,
-	ParsedLocation,
 	ParsedTime,
 	TransitAttribute,
 	TransitData,
@@ -14,7 +12,8 @@ import type {
 } from "$lib/types";
 import { dateDifference } from "$lib/util";
 import { transferToBlock } from "$lib/merge";
-import type { StationFull } from "db-hafas-stations";
+import { ParsedGeolocation } from "$lib/models/ParsedGeolocation";
+import { ParsedLocation } from "$lib/models/ParsedLocation";
 
 export function journeyToBlocks(journey: Journey | undefined): JourneyBlock[] {
 	if (journey?.legs === undefined) {
@@ -91,7 +90,7 @@ function legToBlock(leg: Leg): LegBlock {
 			"" + leg.line?.operator?.name + leg.line?.fahrtNr + leg.line?.name + leg.direction,
 		attribute: leg.cancelled ? "cancelled" : undefined,
 		departureData: {
-			location: parseStationStopLocation(leg.origin),
+			location: new ParsedLocation(leg.origin),
 			attribute: getAttributeFromStopover(leg.stopovers?.at(0)),
 			time: parseSingleTime(
 				{
@@ -104,7 +103,7 @@ function legToBlock(leg: Leg): LegBlock {
 			platformData: getPlatformData(departurePlatform, leg.plannedDeparturePlatform)
 		},
 		arrivalData: {
-			location: parseStationStopLocation(leg.destination),
+			location: new ParsedLocation(leg.destination),
 			attribute: getAttributeFromStopover(leg.stopovers?.at(-1)),
 			time: parseSingleTime(
 				{ time: leg.arrival, timePlanned: leg.plannedArrival, delay: leg.arrivalDelay },
@@ -119,29 +118,13 @@ function legToBlock(leg: Leg): LegBlock {
 			) ?? 0,
 		direction: leg.direction ?? "undefined",
 		line: leg.line ?? { type: "line" },
-		currentLocation: getLegCurrentLocation(leg),
+		currentLocation: ParsedGeolocation.createLegCurrentLocation(leg),
 		stopovers: leg.stopovers?.slice(1, -1).map(parseStopover) ?? [],
 		polyline:
 			leg.polyline?.features.map((feature) => [
 				feature.geometry.coordinates[1],
 				feature.geometry.coordinates[0]
 			]) ?? []
-	};
-}
-
-function getLegCurrentLocation(leg: Leg): ParsedGeolocation | undefined {
-	if (leg.currentLocation === undefined) {
-		return undefined;
-	}
-	return {
-		type: "currentLocation",
-		name: `${leg.line?.name} → ${leg.direction}`,
-		requestParameter: { type: "location" },
-		position: {
-			lat: leg.currentLocation.latitude ?? 0,
-			lng: leg.currentLocation.longitude ?? 0
-		},
-		asAt: new Date()
 	};
 }
 
@@ -161,8 +144,8 @@ function locationToBlock(
 function walkToBlock(walk: Leg, nextDeparture: string | undefined): WalkingBlock {
 	return {
 		type: "walk",
-		originLocation: parseStationStopLocation(walk.origin),
-		destinationLocation: parseStationStopLocation(walk.destination),
+		originLocation: new ParsedLocation(walk.origin),
+		destinationLocation: new ParsedLocation(walk.destination),
 		transferTime: dateDifference(walk.departure ?? walk.plannedDeparture, nextDeparture) ?? 0,
 		walkingTime: dateDifference(walk.departure, walk.arrival),
 		distance: walk.distance ?? 0
@@ -175,8 +158,8 @@ function onwardJourneyToBlock(leg: Leg, nextDeparture: string | undefined): Onwa
 	)?.text;
 	return {
 		type: "onward-journey",
-		originLocation: parseStationStopLocation(leg.origin),
-		destinationLocation: parseStationStopLocation(leg.destination),
+		originLocation: new ParsedLocation(leg.origin),
+		destinationLocation: new ParsedLocation(leg.destination),
 		transferTime: dateDifference(leg.departure ?? leg.plannedDeparture, nextDeparture) ?? 0,
 		travelTime: dateDifference(leg.departure, leg.arrival),
 		recommendedAction,
@@ -184,52 +167,52 @@ function onwardJourneyToBlock(leg: Leg, nextDeparture: string | undefined): Onwa
 	};
 }
 
-export function parseStationStopLocation(
-	location: Station | Stop | Location | StationFull | undefined
-): ParsedLocation {
-	if (location === undefined) {
-		return {
-			name: "undefined",
-			requestParameter: "",
-			type: "station",
-			position: {
-				lat: 0,
-				lng: 0
-			}
-		};
-	}
-	if (location.type === "station" || location.type === "stop") {
-		return {
-			name: location.name ?? "undefined",
-			requestParameter: location.id ?? location,
-			type: "station",
-			position: {
-				lat: location.location?.latitude ?? 0,
-				lng: location.location?.longitude ?? 0
-			}
-		};
-	} else if (location.poi) {
-		return {
-			name: location.name ?? "undefined",
-			requestParameter: location,
-			type: "poi",
-			position: {
-				lat: location.latitude ?? 0,
-				lng: location.longitude ?? 0
-			}
-		};
-	} else {
-		return {
-			name: location.address ?? "undefined",
-			requestParameter: location,
-			type: "address",
-			position: {
-				lat: location.latitude ?? 0,
-				lng: location.longitude ?? 0
-			}
-		};
-	}
-}
+//export function parseStationStopLocation(
+//	location: Station | Stop | Location | StationFull | undefined
+//): ParsedLocation {
+//	if (location === undefined) {
+//		return {
+//			name: "undefined",
+//			requestParameter: "",
+//			type: "station",
+//			position: {
+//				lat: 0,
+//				lng: 0
+//			}
+//		};
+//	}
+//	if (location.type === "station" || location.type === "stop") {
+//		return {
+//			name: location.name ?? "undefined",
+//			requestParameter: location.id ?? location,
+//			type: "station",
+//			position: {
+//				lat: location.location?.latitude ?? 0,
+//				lng: location.location?.longitude ?? 0
+//			}
+//		};
+//	} else if (location.poi) {
+//		return {
+//			name: location.name ?? "undefined",
+//			requestParameter: location,
+//			type: "poi",
+//			position: {
+//				lat: location.latitude ?? 0,
+//				lng: location.longitude ?? 0
+//			}
+//		};
+//	} else {
+//		return {
+//			name: location.address ?? "undefined",
+//			requestParameter: location,
+//			type: "address",
+//			position: {
+//				lat: location.latitude ?? 0,
+//				lng: location.longitude ?? 0
+//			}
+//		};
+//	}
+//}
 
 function parseStopover(stopover: StopOver): TransitData {
 	const platform = stopover.arrivalPlatform ?? stopover.departurePlatform ?? undefined;
@@ -255,7 +238,7 @@ function parseStopover(stopover: StopOver): TransitData {
 		attribute = "additional";
 	}
 	return {
-		location: parseStationStopLocation(stopover.stop),
+		location: new ParsedLocation(stopover.stop),
 		attribute,
 		time,
 		platformData: getPlatformData(

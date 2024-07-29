@@ -9,13 +9,15 @@
 		selectedJourneys
 	} from "$lib/stores/journeyStores";
 	import { onDestroy, onMount, setContext } from "svelte";
-	import type { DefiningBlock, ParsedLocation } from "$lib/types";
+	import type { DefiningBlock } from "$lib/types";
 	import { isTimeDefined } from "$lib/util";
 	import Polyline from "$lib/components/leaflet/Polyline.svelte";
 	import Marker from "$lib/components/leaflet/Marker.svelte";
 	import IconStationLocation from "$lib/components/icons/IconStationLocation.svelte";
 	import { settings } from "$lib/stores/settingStore";
 	import L from "leaflet";
+	import type { ParsedLocation } from "$lib/models/ParsedLocation";
+	import { ParsedGeolocation } from "$lib/models/ParsedGeolocation";
 
 	let map: L.Map | undefined;
 	let mapElement: HTMLElement;
@@ -230,12 +232,7 @@
 		{#if currentPosition !== undefined}
 			<Marker
 				data={{
-					location: {
-						position: currentPosition,
-						type: "address", // this is important since it does not behave like "currentLocation" (it is never outdated)
-						name: "Live-Standort",
-						requestParameter: { type: "location" }
-					},
+					location: ParsedGeolocation.createUserCurrentLocation(currentPosition),
 					time: {},
 					platformData: null
 				}}

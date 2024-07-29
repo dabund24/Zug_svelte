@@ -3,7 +3,6 @@ import type {
 	AdhesiveBlock,
 	JourneyBlock,
 	KeyedItem,
-	ParsedLocation,
 	ParsedTime,
 	TransitType,
 	TreeNode
@@ -13,6 +12,7 @@ import { getMergingBlock } from "$lib/merge";
 import { getApiRefreshUrl, getApiJourneysUrl, getDiagramUrl } from "$lib/urls";
 import type { Settings } from "$lib/stores/settingStore";
 import { goto } from "$app/navigation";
+import type { ParsedLocation } from "$lib/models/ParsedLocation";
 
 export type DisplayedFormData = {
 	locations: KeyedItem<ParsedLocation, number>[];

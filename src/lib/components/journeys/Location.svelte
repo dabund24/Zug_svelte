@@ -2,19 +2,17 @@
 	import type { LocationBlock } from "$lib/types";
 	import Time from "$lib/components/Time.svelte";
 	import IconStationLocation from "$lib/components/icons/IconStationLocation.svelte";
-	import { getGeolocationString } from "$lib/util";
-	import { displayedFormData } from "$lib/stores/journeyStores";
+	import { ParsedGeolocation } from "$lib/models/ParsedGeolocation";
 
 	export let block: LocationBlock
 
-	let locationName = block.location.name
-	let locationType = block.location.type
+	let location = block.location
 
-	if (block.location.type === "currentLocation") {
-		locationName = getGeolocationString(block.location.asAt)
-	} else if (block.location.name === "Standort") {
-		locationName = getGeolocationString($displayedFormData.geolocationDate)
-		locationType = "currentLocation"
+	let locationName = location.name
+	let locationType = location.type
+
+	if (location instanceof ParsedGeolocation) {
+		locationName = location.toRelativeString()
 	}
 </script>
 

@@ -1,7 +1,5 @@
 <script lang="ts">
 	import type { TransitData } from "$lib/types";
-	import { getGeolocationString } from "$lib/util";
-	import { displayedFormData } from "$lib/stores/journeyStores";
 
 	export let transitData: TransitData;
 	export let nameIsStrong = false;
@@ -10,15 +8,10 @@
 
 	$: stationInnerTag = transitData.attribute === "cancelled" ? "s" : "span";
 
-	$: asAt =
-		transitData.location.type === "currentLocation"
-			? transitData.location.asAt
-			: $displayedFormData.geolocationDate;
-
 	let locationName = transitData.location.name;
 
-	$: if (transitData.location.type === "currentLocation" || locationName === "Standort") {
-		locationName = getGeolocationString(asAt, transitData.location.name);
+	$: if (transitData.location.type === "currentLocation") {
+		locationName = transitData.location.toRelativeString();
 	}
 
 	let delayTextA = "";

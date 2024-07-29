@@ -1,6 +1,6 @@
 <script lang="ts">
 	import StationInput from "./StationInput.svelte";
-	import { type KeyedItem, type ParsedLocation, type TransitType } from "$lib/types.js";
+	import { type KeyedItem, type TransitType } from "$lib/types.js";
 	import { dateToInputDate, getCurrentGeolocation, valueIsDefined } from "$lib/util.js";
 	import { type DisplayedFormData, setDisplayedFormData } from "$lib/stores/journeyStores.js";
 	import { scale } from "svelte/transition";
@@ -16,6 +16,8 @@
 	import SingleSelect from "$lib/components/SingleSelect.svelte";
 	import { getDiagramUrl } from "$lib/urls";
 	import { get } from "svelte/store";
+	import type { ParsedLocation } from "$lib/models/ParsedLocation";
+	import { ParsedGeolocation } from "$lib/models/ParsedGeolocation";
 
 	export let initialFormData: DisplayedFormData | undefined = undefined;
 
@@ -82,11 +84,11 @@
 			geolocationDate: new Date()
 		};
 		// handle current position
-		if (formData.locations.some((l) => l.value.type === "currentLocation")) {
+		if (formData.locations.some((l) => l.value instanceof ParsedGeolocation)) {
 			const currentLocation = await getCurrentGeolocation();
 			formData.geolocationDate = currentLocation.asAt;
 			formData.locations = formData.locations.map((l) => {
-				if (l.value.type === "currentLocation") {
+				if (l.value instanceof ParsedGeolocation) {
 					return { key: l.key, value: currentLocation };
 				}
 				return l;

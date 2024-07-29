@@ -1,12 +1,12 @@
 import { isDefined } from "$lib/util";
 
 import type { RequestHandler } from "@sveltejs/kit";
-import { parseStationStopLocation } from "$lib/server/parse";
 import autocomplete from "db-hafas-stations-autocomplete";
 import stations from "db-hafas-stations";
-import type { ParsedLocation, ZugResponse } from "$lib/types";
+import type { ZugResponse } from "$lib/types";
 import { getSuccessResponse, getZugErrorFromHafasError } from "$lib/server/responses";
 import { client } from "$lib/server/setup";
+import { ParsedLocation } from "$lib/models/ParsedLocation";
 
 const stationsNameMap = new Map<string, ParsedLocation>();
 const stationsIdMap = new Map<string, ParsedLocation>();
@@ -14,7 +14,7 @@ const stationsIdMap = new Map<string, ParsedLocation>();
 stations
 	.full()
 	.on("data", (obj) => {
-		stationsNameMap.set(obj.name, parseStationStopLocation(obj));
+		stationsNameMap.set(obj.name, new ParsedLocation(obj));
 	})
 	.on("end", () => {
 		console.log("Stream has been completely read.");
@@ -32,7 +32,9 @@ export const GET: RequestHandler = async ({ url }) => {
 	if (url.searchParams.get("hafas") === "true") {
 		result = await client
 			.locations(url.searchParams.get("name") ?? "", { results: 10 })
-			.then((locations) => getSuccessResponse(locations.map(parseStationStopLocation)))
+			.then((locations) =>
+				getSuccessResponse(locations.map((location) => new ParsedLocation(location)))
+			)
 			.catch(getZugErrorFromHafasError);
 	} else {
 		const locations = autocomplete(url.searchParams.get("name") ?? "", 10, true, true)

@@ -1,12 +1,13 @@
 import type { PageLoad } from "./$types";
 import { displayedFormData, type DisplayedFormData } from "$lib/stores/journeyStores";
-import type { KeyedItem, ParsedLocation, TransitType, ZugResponse } from "$lib/types";
+import type { KeyedItem, TransitType, ZugResponse } from "$lib/types";
 import type { Settings } from "$lib/stores/settingStore";
 import type { Location } from "hafas-client";
 import { getDiagramUrl } from "$lib/urls";
 import { browser } from "$app/environment";
 import { get } from "svelte/store";
 import { error } from "@sveltejs/kit";
+import { ParsedLocation } from "$lib/models/ParsedLocation";
 
 export const load: PageLoad = async ({ url, fetch }) => {
 	if (browser && getDiagramUrl(get(displayedFormData)).href === url.href) {
@@ -39,12 +40,7 @@ export const load: PageLoad = async ({ url, fetch }) => {
 				}
 				return {
 					key: Math.random(),
-					value: {
-						name: response.type,
-						requestParameter: "",
-						type: "station",
-						position: { lat: 0, lng: 0 }
-					}
+					value: new ParsedLocation()
 				};
 			})
 		);

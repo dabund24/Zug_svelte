@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { ParsedLocation } from "$lib/types";
 	import { draw } from "svelte/transition";
+	import type { ParsedLocation } from "$lib/models/ParsedLocation";
 
 	export let color: "product" | "foreground" | "accent";
 	export let iconType: ParsedLocation["type"];

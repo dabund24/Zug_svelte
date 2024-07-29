@@ -2,13 +2,13 @@ import type {
 	AdhesiveBlock,
 	JourneyBlock,
 	LocationBlock,
-	ParsedLocation,
 	ParsedTime,
 	TransferBlock,
 	TransitData,
 	WalkingBlock
 } from "$lib/types";
 import { dateDifference, getRawLocationBlock, mergeTransitData } from "$lib/util";
+import type { ParsedLocation } from "$lib/models/ParsedLocation";
 
 /**
  * Figures out how to merge two journeys by returning a merging block
@@ -70,12 +70,7 @@ export function getMergingBlock(
 		return undefined;
 	} else if (precedingBlock.type === "leg" && succeedingBlock.type === "leg") {
 		// either add transfer or walk between legs as merging block
-		if (
-			positionsAreEqual(
-				precedingBlock.arrivalData.location.position,
-				succeedingBlock.departureData.location.position
-			)
-		) {
+		if (precedingBlock.arrivalData.location.equals(succeedingBlock.departureData.location)) {
 			const mergeWithStopover = precedingBlock.blockKey === succeedingBlock.blockKey;
 			precedingBlock.succeededBy = mergeWithStopover ? "stopover" : "transfer";
 			succeedingBlock.precededBy = mergeWithStopover ? "stopover" : "transfer";
@@ -99,12 +94,7 @@ export function getMergingBlock(
 	} else if (precedingBlock.type === "leg" && succeedingBlock.type === "location") {
 		// if leg destination and location are identical, hide location,
 		// else add merging walk
-		if (
-			positionsAreEqual(
-				precedingBlock.arrivalData.location.position,
-				succeedingBlock.location.position
-			)
-		) {
+		if (precedingBlock.arrivalData.location.equals(succeedingBlock.location)) {
 			precedingBlock.succeededBy = undefined;
 			succeedingBlock.hidden = true;
 			return undefined;
@@ -120,12 +110,7 @@ export function getMergingBlock(
 		}
 	} else if (precedingBlock.type === "location" && succeedingBlock.type === "leg") {
 		// same as previous case, but other way round
-		if (
-			positionsAreEqual(
-				precedingBlock.location.position,
-				succeedingBlock.departureData.location.position
-			)
-		) {
+		if (precedingBlock.location.equals(succeedingBlock.departureData.location)) {
 			precedingBlock.hidden = true;
 			succeedingBlock.precededBy = undefined;
 		} else {
@@ -193,11 +178,4 @@ export function transferToBlock(
 		departureProduct,
 		isStopover
 	};
-}
-
-function positionsAreEqual(
-	positionA: ParsedLocation["position"],
-	positionB: ParsedLocation["position"]
-): boolean {
-	return positionA.lat === positionB.lat && positionA.lng === positionB.lng;
 }

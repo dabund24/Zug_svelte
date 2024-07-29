@@ -7,12 +7,13 @@
 	import Modal from "$lib/components/Modal.svelte";
 	import LegRegular from "$lib/components/journeys/LegRegular.svelte";
 	import SummaryStationIcon from "./SummaryStationIcon.svelte";
-	import { dateDifference, getGeolocationString } from "$lib/util";
+	import { dateDifference } from "$lib/util";
 	import Duration from "$lib/components/Duration.svelte";
 	import DateDuration from "$lib/components/DateDuration.svelte";
 	import { page } from "$app/stores";
 	import { pushState } from "$app/navigation";
 	import Warning from "$lib/components/Warning.svelte";
+	import { ParsedGeolocation } from "$lib/models/ParsedGeolocation";
 
 	type JourneyInfo = {
 		legs: LegBlock[];
@@ -58,8 +59,8 @@
 				animate:flip={{ duration: 400 }}
 			>
 				<strong class="station-name"
-					>{location.value.type === "currentLocation"
-						? getGeolocationString(location.value.asAt)
+					>{location.value instanceof ParsedGeolocation
+						? location.value.toRelativeString()
 						: location.value.name}</strong
 				>
 				<div class="visuals-container flex-row">
